@@ -9,14 +9,12 @@ from calling rsync from ruby.
 
 == FEATURES/PROBLEMS:
 
-* RBSync is a thin wrapper, so as to expose as much of rsync's power
-as possible
+* RBSync is a thin wrapper, so as to expose as much of rsync's power as possible
 * RBSync does, however, require that rsync be installed
 
 == SYNOPSIS:
 
-RBSync has a convenience class which makes it easy to sync with rsync's
-archive (-a) flag:
+RBSync has a convenience class which makes it easy to sync with rsync's archive (-a) flag:
 
   import 'rubygems'
   import 'rbsync'

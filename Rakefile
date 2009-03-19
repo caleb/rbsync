@@ -25,6 +25,8 @@ PROJ.url = 'http://www.github.com/caleb/rbsync'
 PROJ.version = RBSync::VERSION
 PROJ.rubyforge.name = 'rbsync'
 
+PROJ.readme_file = "README.rdoc"
+
 PROJ.spec.opts << '--color'
 
 # EOF
