@@ -126,6 +126,7 @@ module RBSync
 
       name = flag[0]
       name.gsub!(/-/, '_')
+      name.gsub!(/^8/, 'eight')
       name.gsub!(/^(\d+)/, '_\1')
 
       # define the read accessor
