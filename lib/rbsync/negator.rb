@@ -13,7 +13,7 @@ module RBSync
 
         (class << self; self; end).class_eval <<-RUBY
           def #{m}
-            @rbsync.send :"#{m.gsub(/!$/, '')}=", false
+            @rbsync.#{m.gsub(/!$/, '')} = false
           end
         RUBY
 
