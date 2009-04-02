@@ -48,7 +48,7 @@ module RBSync
     """
 
     # define the flags
-    %w{
+    (%w{
       --verbose
       --quiet
       --no-motd
@@ -163,7 +163,15 @@ module RBSync
       --ipv6
       --version
       --help
-    }.each do |flag|
+    } + %w{
+      --source-host=HOST
+      --source-user=USER
+      --source-path=PATH
+
+      --destination-host=HOST
+      --destination-user=USER
+      --destination-path=PATH
+    }).each do |flag|
       flag.gsub!(/^--/, '')
       flag = flag.split '='
 
@@ -182,26 +190,50 @@ module RBSync
       # if the flag has two components, it contains an equals sign, and accepts a value
       # else, it has only one and doesn't contain an equals sign, which makes it a boolean flag
       if flag.size == 2
-        
+        argument = flag[1]
+
+        define_method "#{name}=" do |value|
+          instance_variable_set "@#{name}", value
+        end
       elsif flag.size == 1
         alias_method "#{name}?".to_sym, name
 
         define_method "#{name}=" do |value|
+          raise ArgumentError, "value must be either true, false, or nil" if ! [true, false, nil].include?(value)
           instance_variable_set "@#{name}", value
         end
         define_method "#{name}!" do
           self.send "#{name}=", true
           Option.new self, name
         end
-
       else
         raise "a flag should contain only one equals sign"
       end
     end
 
+    def source
+      @source || build_path(source_user, source_host, source_path)
+    end
+    attr_writer :source
+
+    def destination
+      @destination || build_path(destination_user, destination_host, destination_path)
+    end
+    attr_writer :destination
+
     def no
       Negator.new self
     end
 
+  protected
+    def build_path user, host, path
+      if ! user.nil? && ! host.nil? && ! path.nil?
+        "#{user}@#{host}:#{path}"
+      elsif user.nil? && host.nil? && ! path.nil?
+        path
+      else
+        raise ArgumentError, "you must either set the host, user, and path, or just the path"
+      end
+    end
   end
 end
