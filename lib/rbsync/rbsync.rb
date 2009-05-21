@@ -2,11 +2,14 @@
 module RBSync
   class RBSync
 
-    def initialize
+    def initialize from=nil, to=nil
       @options = {}
+
+      self.from = from
+      self.to = to
     end
 
-    """
+=begin
     0      Success
 
     1      Syntax or usage error
@@ -49,7 +52,7 @@ module RBSync
     30     Timeout in data send/receive
 
     35     Timeout waiting for daemon connection
-    """
+=end
 
     # define the flags
     (%w{

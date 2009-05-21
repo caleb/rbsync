@@ -140,8 +140,8 @@ describe RBSync do
       command.should =~ /^rsync/
       command.should =~ %r{#{from} #{to}$}
 
-      command.gsub! /^rsync/, ''
-      command.gsub! %r{#{from} #{to}$}, ''
+      command.gsub!(/^rsync/, '')
+      command.gsub!(%r{#{from} #{to}$}, '')
 
       flags.each do |flag|
         command.sub! flag, ''
@@ -168,6 +168,25 @@ describe RBSync do
     end
   end
 
+  describe "constructor" do
+    it "should take source and destination parameters" do
+      @rsync = RBSync::RBSync.new '/home/user', 'user@host.com:/home/user'
+      @rsync.from.should == '/home/user'
+      @rsync.to.should == 'user@host.com:/home/user'
+    end
+
+    it "should have no source or destination if the source and destination parameters are omitted from the constructor" do
+      @rsync = RBSync::RBSync.new
+
+      lambda {
+        @rsync.from
+      }.should raise_error(ArgumentError)
+
+      lambda {
+        @rsync.to
+      }.should raise_error(ArgumentError)
+    end
+  end
 end
 
 # EOF
