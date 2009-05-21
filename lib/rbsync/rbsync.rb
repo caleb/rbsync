@@ -2,6 +2,10 @@
 module RBSync
   class RBSync
 
+    def initialize
+      @options = {}
+    end
+
     """
     0      Success
 
@@ -163,28 +167,20 @@ module RBSync
       --ipv6
       --version
       --help
-    } + %w{
-      --source-host=HOST
-      --source-user=USER
-      --source-path=PATH
-
-      --destination-host=HOST
-      --destination-user=USER
-      --destination-path=PATH
     }).each do |flag|
       flag.gsub!(/^--/, '')
       flag = flag.split '='
 
       raise "a flag should be non-empty and contain only one equals sign" if ! [1, 2].include? flag.size
 
-      name = flag[0]
+      flag_name = name = flag[0]
       name.gsub!(/-/, '_')
       name.gsub!(/^8/, 'eight')
       name.gsub!(/^(\d+)/, '_\1')
 
       # define the read accessor
       define_method name do
-        instance_variable_get "@#{name}"
+        @options[flag_name]
       end
 
       # if the flag has two components, it contains an equals sign, and accepts a value
@@ -193,14 +189,14 @@ module RBSync
         argument = flag[1]
 
         define_method "#{name}=" do |value|
-          instance_variable_set "@#{name}", value
+          @options[flag_name] = value
         end
       elsif flag.size == 1
         alias_method "#{name}?".to_sym, name
 
         define_method "#{name}=" do |value|
           raise ArgumentError, "value must be either true, false, or nil" if ! [true, false, nil].include?(value)
-          instance_variable_set "@#{name}", value
+          @options[flag_name] = value
         end
         define_method "#{name}!" do
           self.send "#{name}=", true
@@ -211,18 +207,40 @@ module RBSync
       end
     end
 
-    def source
-      @source || build_path(source_user, source_host, source_path)
-    end
-    attr_writer :source
+    attr_accessor :from_host, :from_user, :from_path
+    attr_accessor :to_host, :to_user, :to_path
 
-    def destination
-      @destination || build_path(destination_user, destination_host, destination_path)
+    def from
+      @from || build_path(from_user, from_host, from_path)
     end
-    attr_writer :destination
+    attr_writer :from
+
+    def to
+      @to || build_path(to_user, to_host, to_path)
+    end
+    attr_writer :to
 
     def no
       Negator.new self
+    end
+
+    # returns the rysnc command that would be executed
+    def command
+      c = ""
+      c << "rsync"
+      @options.each_pair do |flag, value|
+        next if value.nil?
+
+        c << " --#{flag}"
+
+        if value.is_a? String
+          c << "='#{value}'"
+        end
+      end
+
+      c << " #{from} #{to}"
+
+      c
     end
 
   protected

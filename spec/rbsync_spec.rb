@@ -55,81 +55,119 @@ describe RBSync do
 
   #destination
   it "should construct an rsync path when the individual destination properties are set" do
-    @rsync.destination_user = "user"
-    @rsync.destination_host = "host.com"
-    @rsync.destination_path = "/home/user"
+    @rsync.to_user = "user"
+    @rsync.to_host = "host.com"
+    @rsync.to_path = "/home/user"
 
-    @rsync.destination.should == "user@host.com:/home/user"
+    @rsync.to.should == "user@host.com:/home/user"
   end
   it "should raise an ArgumentError if a user is set but not a host and vice versa for a destination" do
-    @rsync.destination_user = "user"
-    @rsync.destination_path = "/home/user"
+    @rsync.to_user = "user"
+    @rsync.to_path = "/home/user"
     lambda {
-      @rsync.destination
+      @rsync.to
     }.should raise_error(ArgumentError)
 
     rsync2 = RBSync::RBSync.new
-    rsync2.destination_host = "host.com"
-    rsync2.destination_path = "/home/user"
+    rsync2.to_host = "host.com"
+    rsync2.to_path = "/home/user"
     lambda {
-      rsync2.destination
+      rsync2.to
     }.should raise_error(ArgumentError)
   end
   it "should raise an ArgumentError if a destination path is not provided" do
-    @rsync.destination_user = "user"
-    @rsync.destination_host = "host.com"
+    @rsync.to_user = "user"
+    @rsync.to_host = "host.com"
     lambda {
-      @rsync.destination
+      @rsync.to
     }.should raise_error(ArgumentError)
   end
   it "should prefer an explicitly set destination over the components" do
-    @rsync.destination_user = "user"
-    @rsync.destination_host = "host.com"
-    @rsync.destination_path = "/home/user"
+    @rsync.to_user = "user"
+    @rsync.to_host = "host.com"
+    @rsync.to_path = "/home/user"
 
-    @rsync.destination = "newuser@newhost.com/home/newuser"
+    @rsync.to = "newuser@newhost.com:/home/newuser"
 
-    @rsync.destination.should == "newuser@newhost.com/home/newuser"
+    @rsync.to.should == "newuser@newhost.com:/home/newuser"
   end
 
   # source
   it "should construct an rsync path when the individual source properties are set" do
-    @rsync.source_user = "user"
-    @rsync.source_host = "host.com"
-    @rsync.source_path = "/home/user"
+    @rsync.from_user = "user"
+    @rsync.from_host = "host.com"
+    @rsync.from_path = "/home/user"
 
-    @rsync.source.should == "user@host.com:/home/user"
+    @rsync.from.should == "user@host.com:/home/user"
   end
   it "should raise an ArgumentError if a user is set but not a host and vice versa for a source" do
-    @rsync.source_user = "user"
-    @rsync.source_path = "/home/user"
+    @rsync.from_user = "user"
+    @rsync.from_path = "/home/user"
     lambda {
-      @rsync.source
+      @rsync.from
     }.should raise_error(ArgumentError)
 
     rsync2 = RBSync::RBSync.new
-    rsync2.source_host = "host.com"
-    rsync2.source_path = "/home/user"
+    rsync2.from_host = "host.com"
+    rsync2.from_path = "/home/user"
     lambda {
-      rsync2.source
+      rsync2.from
     }.should raise_error(ArgumentError)
   end
   it "should raise an ArgumentError if a source path is not provided" do
-    @rsync.source_user = "user"
-    @rsync.source_host = "host.com"
+    @rsync.from_user = "user"
+    @rsync.from_host = "host.com"
     lambda {
-      @rsync.source
+      @rsync.from
     }.should raise_error(ArgumentError)
   end
   it "should prefer an explicitly set source over the components" do
-    @rsync.source_user = "user"
-    @rsync.source_host = "host.com"
-    @rsync.source_path = "/home/user"
+    @rsync.from_user = "user"
+    @rsync.from_host = "host.com"
+    @rsync.from_path = "/home/user"
 
-    @rsync.source = "newuser@newhost.com/home/newuser"
+    @rsync.from = "newuser@newhost.com:/home/newuser"
 
-    @rsync.source.should == "newuser@newhost.com/home/newuser"
+    @rsync.from.should == "newuser@newhost.com:/home/newuser"
   end
+
+  describe "command method" do
+    def command_should_have_only command, from, to, *flags
+      flags.each do |flag|
+        command.should include flag
+      end
+
+      command.should =~ /^rsync/
+      command.should =~ %r{#{from} #{to}$}
+
+      command.gsub! /^rsync/, ''
+      command.gsub! %r{#{from} #{to}$}, ''
+
+      flags.each do |flag|
+        command.sub! flag, ''
+      end
+
+      # with all the flags, the rsync command and the source and destination values stripped, there shouldn't be anything else
+      command.strip.should == ""
+    end
+    
+    it "should set the --archive flag when archive! is used" do
+      @rsync.archive!
+      @rsync.from = "/home/me/"
+      @rsync.to = "user@host.com:/home/user"
+      
+      @rsync.command.should == "rsync --archive /home/me/ user@host.com:/home/user"
+    end
+    it "should set the --archive and --exclude flags when archive! and exclude= are used" do
+      @rsync.archive!
+      @rsync.exclude = "*~"
+      @rsync.from = "/home/me/"
+      @rsync.to = "user@host.com:/home/user"
+
+      command_should_have_only @rsync.command, "/home/me/", "user@host.com:/home/user", "--exclude='*~'", "--archive"
+    end
+  end
+
 end
 
 # EOF

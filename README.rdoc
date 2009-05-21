@@ -9,8 +9,8 @@ from calling rsync from ruby.
 
 == FEATURES/PROBLEMS:
 
-* RBSync is a thin wrapper, so as to expose as much of rsync's power as possible
-* RBSync does, however, require that rsync be installed
+* RBSync is a thin wrapper so it exposes as much of rsync's power as possible
+* RBSync requires that rsync be installed
 
 == SYNOPSIS:
 
