@@ -61,26 +61,20 @@ describe RBSync do
 
     @rsync.to.should == "user@host.com:/home/user"
   end
-  it "should raise an ArgumentError if a user is set but not a host and vice versa for a destination" do
+  it "should have a nil destination if a user is set but not a host and vice versa for a destination" do
     @rsync.to_user = "user"
     @rsync.to_path = "/home/user"
-    lambda {
-      @rsync.to
-    }.should raise_error(ArgumentError)
+    @rsync.to.should be_nil
 
     rsync2 = RBSync::RBSync.new
     rsync2.to_host = "host.com"
     rsync2.to_path = "/home/user"
-    lambda {
-      rsync2.to
-    }.should raise_error(ArgumentError)
+    rsync2.to.should be_nil
   end
-  it "should raise an ArgumentError if a destination path is not provided" do
+  it "should have a nil destination if a destination path is not provided" do
     @rsync.to_user = "user"
     @rsync.to_host = "host.com"
-    lambda {
-      @rsync.to
-    }.should raise_error(ArgumentError)
+    @rsync.to.should be_nil
   end
   it "should prefer an explicitly set destination over the components" do
     @rsync.to_user = "user"
@@ -100,26 +94,22 @@ describe RBSync do
 
     @rsync.from.should == "user@host.com:/home/user"
   end
-  it "should raise an ArgumentError if a user is set but not a host and vice versa for a source" do
+  it "should have a nil source if a user is set but not a host and vice versa for a source" do
     @rsync.from_user = "user"
     @rsync.from_path = "/home/user"
-    lambda {
-      @rsync.from
-    }.should raise_error(ArgumentError)
+
+    @rsync.from.should be_nil
 
     rsync2 = RBSync::RBSync.new
     rsync2.from_host = "host.com"
     rsync2.from_path = "/home/user"
-    lambda {
-      rsync2.from
-    }.should raise_error(ArgumentError)
+    rsync2.from.should be_nil
   end
-  it "should raise an ArgumentError if a source path is not provided" do
+  it "should have a nil source if a source path is not provided" do
     @rsync.from_user = "user"
     @rsync.from_host = "host.com"
-    lambda {
-      @rsync.from
-    }.should raise_error(ArgumentError)
+
+    @rsync.from.should be_nil
   end
   it "should prefer an explicitly set source over the components" do
     @rsync.from_user = "user"
@@ -178,13 +168,18 @@ describe RBSync do
     it "should have no source or destination if the source and destination parameters are omitted from the constructor" do
       @rsync = RBSync::RBSync.new
 
-      lambda {
-        @rsync.from
-      }.should raise_error(ArgumentError)
+      @rsync.from.should be_nil
+      @rsync.to.should be_nil
+    end
+  end
 
-      lambda {
-        @rsync.to
-      }.should raise_error(ArgumentError)
+  describe "go!" do
+    it "should have the --archive flag when the archive! method is used" do
+      @rsync.archive!
+      @rsync.from = "-bwah /Users/caleb/Desktop/BBEdit_9.2_Demo.dmg"
+      @rsync.to = "/tmp"
+
+      @rsync.go!.should include "--archive"
     end
   end
 end

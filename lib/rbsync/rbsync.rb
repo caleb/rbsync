@@ -1,12 +1,13 @@
+require 'open4'
 
 module RBSync
   class RBSync
-
     def initialize from=nil, to=nil
       @options = {}
 
       self.from = from
       self.to = to
+      self.rsync = "rsync"
     end
 
 =begin
@@ -210,6 +211,7 @@ module RBSync
       end
     end
 
+    attr_accessor :rsync # the path to rsync
     attr_accessor :from_host, :from_user, :from_path
     attr_accessor :to_host, :to_user, :to_path
 
@@ -246,6 +248,33 @@ module RBSync
       c
     end
 
+    # perform the sync
+    def go!
+      raise ArgumentError.new("a source and destination must be specified") if to.nil? || from.nil?
+
+      cmd = []
+      cmd << 'rsync'
+
+      @options.each_pair do |flag, value|
+        next if value.nil?
+        c = "--#{flag}"
+
+        if value.is_a? String
+          c << "=#{value}"
+        end
+
+        cmd << c
+      end
+
+      cmd << from
+      cmd << to
+
+      status = Open4.popen4(*cmd) do |pid, stdin, stdout, stderr|
+      end
+
+      puts status.exitstatus
+    end
+
   protected
     def build_path user, host, path
       if ! user.nil? && ! host.nil? && ! path.nil?
@@ -253,7 +282,7 @@ module RBSync
       elsif user.nil? && host.nil? && ! path.nil?
         path
       else
-        raise ArgumentError, "you must either set the host, user, and path, or just the path"
+        nil
       end
     end
   end
