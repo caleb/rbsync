@@ -173,13 +173,13 @@ describe RBSync do
     end
   end
 
-  describe "go!" do
+  describe "build_command" do
     it "should have the --archive flag when the archive! method is used" do
       @rsync.archive!
       @rsync.from = "-bwah /Users/caleb/Desktop/BBEdit_9.2_Demo.dmg"
       @rsync.to = "/tmp"
 
-      @rsync.go!.should include "--archive"
+      @rsync.send(:build_command).should include "--archive"
     end
   end
 end

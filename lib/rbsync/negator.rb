@@ -5,11 +5,7 @@ module RBSync
     def initialize rbsync
       @rbsync = rbsync
 
-      methods = rbsync.class.public_instance_methods(true)
-      methods -= ::Kernel.public_instance_methods(false)
-      methods |= ["to_s","to_a","inspect","==","=~","==="]
-
-      methods.select { |m| m =~ /\!$/ }.each do |m|
+      RBSync.boolean_methods.each do |m|
 
         (class << self; self; end).class_eval <<-RUBY
           def #{m}

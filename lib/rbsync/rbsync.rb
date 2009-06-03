@@ -2,6 +2,8 @@ require 'open4'
 
 module RBSync
   class RBSync
+    @@boolean_methods = []
+
     def initialize from=nil, to=nil
       @options = {}
 
@@ -197,6 +199,7 @@ module RBSync
         end
       elsif flag.size == 1
         alias_method "#{name}?".to_sym, name
+        @@boolean_methods << "#{name}!"
 
         define_method "#{name}=" do |value|
           raise ArgumentError, "value must be either true, false, or nil" if ! [true, false, nil].include?(value)
@@ -231,6 +234,7 @@ module RBSync
 
     # returns the rysnc command that would be executed
     def command
+      cmd = build_command
       c = ""
       c << "rsync"
       @options.each_pair do |flag, value|
@@ -252,6 +256,20 @@ module RBSync
     def go!
       raise ArgumentError.new("a source and destination must be specified") if to.nil? || from.nil?
 
+      cmd = build_command
+
+      status = Open4.popen4(*cmd) do |pid, stdin, stdout, stderr|
+      end
+
+      puts status.exitstatus
+    end
+
+    def self.boolean_methods
+      @@boolean_methods
+    end
+
+  protected
+    def build_command
       cmd = []
       cmd << 'rsync'
 
@@ -269,13 +287,9 @@ module RBSync
       cmd << from
       cmd << to
 
-      status = Open4.popen4(*cmd) do |pid, stdin, stdout, stderr|
-      end
-
-      puts status.exitstatus
+      cmd
     end
 
-  protected
     def build_path user, host, path
       if ! user.nil? && ! host.nil? && ! path.nil?
         "#{user}@#{host}:#{path}"

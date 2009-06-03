@@ -22,7 +22,7 @@ RBSync has a convenience class which makes it easy to sync with rsync's archive 
   # Builds a usable rsync command using the -a (archive) flag to rsync
   rsync = RBSync::RBSync.new '/mysite/', 'me@myhost.com:/var/www/mysite'
   rsync.archive!
-  rsync.sync
+  rsync.go!
 
 If you want more control, you could specify each flag separately. This command
 is equivalent to the one above:
@@ -38,7 +38,7 @@ is equivalent to the one above:
   rsync.owner!
   rsync.devices!
   rsync.specials!
-  rsync.sync
+  rsync.go!
 
 You can even use the archive flag and turn off those flags which you don't want:
   rsync = RBSync::RBsync.new '/mysite/', 'me@myhost.com:/var/www/mysite'
@@ -50,7 +50,10 @@ You can even use the archive flag and turn off those flags which you don't want:
   # turn off the devices (--devices) flag
   rsync.devices = false
 
-  rsync.sync
+  # turn off the recursive (--recursive) flag
+  rsync.no.recursive!
+
+  rsync.go!
 
 == REQUIREMENTS:
 
